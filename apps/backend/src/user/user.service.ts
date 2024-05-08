@@ -3,7 +3,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { validate } from 'class-validator';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
-import { EntityManager, wrap, EntityRepository } from '@mikro-orm/core';
+import { EntityManager, wrap, EntityRepository  } from '@mikro-orm/core';
 import { SECRET } from '../config';
 import { CreateUserDto, LoginUserDto, UpdateUserDto } from './dto';
 import { User } from './user.entity';
@@ -14,9 +14,9 @@ import { UserRepository } from './user.repository';
 @Injectable()
 export class UserService {
   constructor(
-    private readonly userRepository: UserRepository,
-    private readonly em: EntityManager,
-    private readonly articleRepository: EntityRepository<Article> // Inject the Article repository
+    private readonly userRepository: EntityRepository<User>,
+    private readonly articleRepository: EntityRepository<Article>,
+    private readonly em: EntityManager
   ) {}
 
   async findAll(): Promise<User[]> {
@@ -146,4 +146,36 @@ export class UserService {
       firstArticleDate: firstArticleDate ? firstArticleDate.toISOString() : null,
     };
   }
+
+  async getUserRosterStats(): Promise<any[]> {
+    // Retrieve all users with their article count and total favorites count using a single query
+    const users = await this.em.find(User, {});
+
+    const userStats = await Promise.all(users.map(async (user) => {
+      // Get the total number of articles authored by the user
+      const articleCount = await this.em.count(Article, { author: user });
+
+      // Get the total number of favorites received on their articles
+      const articles = await this.em.find(Article, { author: user });
+      const favoriteCount = articles.reduce((sum, article) => sum + article.favoritesCount, 0);
+
+      // Get the date of the first posted article
+      const firstArticle = await this.em.findOne(Article, { author: user }, { orderBy: { createdAt: 'ASC' } });
+      const firstArticleDate = firstArticle ? firstArticle.createdAt : null;
+
+      return {
+        username: user.username,
+        profileLink: `/profiles/${user.username}`, // Assuming profile link follows this pattern
+        articleCount,
+        favoriteCount,
+        firstArticleDate: firstArticleDate ? firstArticleDate.toISOString() : ''
+      };
+    }));
+
+    // Sort the stats based on the number of favorites received
+    userStats.sort((a, b) => b.favoriteCount - a.favoriteCount);
+
+    return userStats;
+  }
+
 }

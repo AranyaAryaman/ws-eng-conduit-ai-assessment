@@ -4,7 +4,7 @@ import { CreateUserDto, LoginUserDto, UpdateUserDto } from './dto';
 import { User } from './user.decorator';
 import { IUserRO } from './user.interface';
 import { UserService } from './user.service';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @ApiBearerAuth()
 @ApiTags('user')
@@ -25,6 +25,13 @@ export class UserController {
   @Get('user/stats')
   async getUserStats(@User('id') userId: number): Promise<any> {
     return this.userService.getUserStats(userId);
+  }
+
+  @Get('roster')
+  @ApiOperation({ summary: 'Get user roster stats' })
+  @ApiResponse({ status: 200, description: 'Return roster stats' })
+  async getRosterStats(): Promise<any[]> {
+    return this.userService.getUserRosterStats();
   }
 
   @UsePipes(new ValidationPipe())
