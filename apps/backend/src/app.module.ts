@@ -1,7 +1,7 @@
 import { MiddlewareConsumer, Module, NestModule, OnModuleInit } from '@nestjs/common';
 import { MikroORM } from '@mikro-orm/core';
 import { MikroOrmMiddleware, MikroOrmModule } from '@mikro-orm/nestjs';
-
+import { HttpClientModule } from '@angular/common/http';
 import { AppController } from './app.controller';
 import { ArticleModule } from './article/article.module';
 import { ProfileModule } from './profile/profile.module';
@@ -10,7 +10,7 @@ import { UserModule } from './user/user.module';
 import ormConfig from '../mikro-orm.config';
 @Module({
   controllers: [AppController],
-  imports: [MikroOrmModule.forRoot(ormConfig), ArticleModule, UserModule, ProfileModule, TagModule],
+  imports: [MikroOrmModule.forRoot(ormConfig), ArticleModule, UserModule, ProfileModule, TagModule, HttpClientModule],
   providers: [],
 })
 export class AppModule implements NestModule, OnModuleInit {

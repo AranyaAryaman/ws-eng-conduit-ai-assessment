@@ -1,1 +1,20 @@
-<p>TODO</p>
+<h1>Conduit Roster</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>User Name</th>
+      <th>Total Articles</th>
+      <th>Total Favorites</th>
+      <th>First Article Date</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let user of userStats">
+      <td><a [href]="user.profileLink">{{ user.username }}</a></td>
+      <td>{{ user.articleCount }}</td>
+      <td>{{ user.favoriteCount }}</td>
+      <td>{{ user.firstArticleDate | date: 'mediumDate' }}</td>
+    </tr>
+  </tbody>
+</table>
