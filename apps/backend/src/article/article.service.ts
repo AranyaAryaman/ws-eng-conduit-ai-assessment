@@ -124,12 +124,14 @@ export class ArticleService {
     if (!user.favorites.contains(article)) {
       user.favorites.add(article);
       article.favoritesCount++;
+      await this.em.persistAndFlush(article); // Persist and flush the changes
     }
 
     await this.em.flush();
     return { article: article.toJSON(user) };
   }
 
+  
   async unFavorite(id: number, slug: string): Promise<IArticleRO> {
     const article = await this.articleRepository.findOneOrFail({ slug }, { populate: ['author'] });
     const user = await this.userRepository.findOneOrFail(id, { populate: ['followers', 'favorites'] });
@@ -137,6 +139,7 @@ export class ArticleService {
     if (user.favorites.contains(article)) {
       user.favorites.remove(article);
       article.favoritesCount--;
+      await this.em.persistAndFlush(article); // Persist and flush the changes
     }
 
     await this.em.flush();

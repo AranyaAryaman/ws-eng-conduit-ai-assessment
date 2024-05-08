@@ -1,17 +1,23 @@
+import { Article } from '../article/article.entity'; // Import the Article entity
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { validate } from 'class-validator';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
-import { EntityManager, wrap } from '@mikro-orm/core';
+import { EntityManager, wrap, EntityRepository } from '@mikro-orm/core';
 import { SECRET } from '../config';
 import { CreateUserDto, LoginUserDto, UpdateUserDto } from './dto';
 import { User } from './user.entity';
 import { IUserRO } from './user.interface';
 import { UserRepository } from './user.repository';
 
+
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: UserRepository, private readonly em: EntityManager) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly em: EntityManager,
+    private readonly articleRepository: EntityRepository<Article> // Inject the Article repository
+  ) {}
 
   async findAll(): Promise<User[]> {
     return this.userRepository.findAll();
@@ -113,5 +119,31 @@ export class UserService {
     };
 
     return { user: userRO };
+  }
+
+  async getUserStats(userId: number): Promise<any> {
+    // Fetch the user to ensure they exist
+    const user = await this.userRepository.findOne({ id: userId });
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    // Fetch all articles written by the user
+    const articles = await this.em.find(Article, { author: user });
+
+    // Sum the favoritesCount of all articles
+    const favoriteCount = articles.reduce((sum, article) => sum + article.favoritesCount, 0);
+
+    // Find the date of the first article
+    const firstArticle = await this.em.findOne(Article, { author: user }, { orderBy: { createdAt: 'ASC' } });
+    const firstArticleDate = firstArticle ? firstArticle.createdAt : null;
+
+    // Return the stats
+    return {
+      username: user.username,
+      articleCount: articles.length,
+      favoriteCount,
+      firstArticleDate: firstArticleDate ? firstArticleDate.toISOString() : null,
+    };
   }
 }
