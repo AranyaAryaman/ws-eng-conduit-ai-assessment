@@ -9,13 +9,14 @@ import { CreateUserDto, LoginUserDto, UpdateUserDto } from './dto';
 import { User } from './user.entity';
 import { IUserRO } from './user.interface';
 import { UserRepository } from './user.repository';
+import { InjectRepository } from '@mikro-orm/nestjs';
 
 
 @Injectable()
 export class UserService {
   constructor(
+    @InjectRepository(User)
     private readonly userRepository: EntityRepository<User>,
-    private readonly articleRepository: EntityRepository<Article>,
     private readonly em: EntityManager
   ) {}
 
