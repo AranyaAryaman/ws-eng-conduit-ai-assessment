@@ -27,7 +27,7 @@ export class UserController {
     return this.userService.getUserStats(userId);
   }
 
-  @Get('roster')
+  @Get('user/roster')
   @ApiOperation({ summary: 'Get user roster stats' })
   @ApiResponse({ status: 200, description: 'Return roster stats' })
   async getRosterStats(): Promise<any[]> {
